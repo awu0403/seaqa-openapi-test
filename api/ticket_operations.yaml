@@ -399,24 +399,6 @@ components:
             type: string
           description: Hidden column keys
 
-    TicketFolder:
-      type: object
-      properties:
-        _id:
-          type: string
-          description: Unique identifier of the folder
-        name:
-          type: string
-          description: Name of the folder
-        type:
-          type: string
-          description: Type (folder)
-        children:
-          type: array
-          items:
-            type: object
-          description: Child views in the folder
-
     SuccessResponse:
       type: object
       properties:
@@ -2261,6 +2243,14 @@ paths:
                 properties:
                   substate:
                     $ref: '#/components/schemas/SubstateOption'
+              example: {
+                  "substate": {
+                      "id": "K34C",
+                      "name": "substate_name",
+                      "color": "#DC82D2",
+                      "text_color": "#FFFFFF"
+                  }
+              }
         '400':
           description: Bad Request - substate already exists
         '403':
@@ -2327,11 +2317,12 @@ paths:
                   tickets:
                     type: array
                     items:
-                      $ref: '#/components/schemas/TicketData'
+                      $ref: '#/components/schemas/TicketKeysData'
                   columns:
                     type: array
                     items:
                       type: object
+                      $ref: '#/components/schemas/TicketColumns'
         '403':
           description: Permission denied
         '404':
@@ -2427,10 +2418,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/TicketView'
-                  folders:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/TicketFolder'
                   navigation:
                     type: array
                     items:
@@ -2441,6 +2428,90 @@ paths:
                         type:
                           type: string
                           enum: [view, folder]
+              example: {
+                  "views": [
+                      {
+                          "_id": "open",
+                          "name": "Open",
+                          "type": "table",
+                          "basic_filters": [
+                              {
+                                  "column_key": "dM50",
+                                  "filter_predicate": "is_any_of",
+                                  "filter_term": [
+                                      "0001"
+                                  ]
+                              },
+                              {
+                                  "column_key": "O509",
+                                  "filter_predicate": "is_any_of",
+                                  "filter_term": []
+                              },
+                              {
+                                  "column_key": "WCRn",
+                                  "filter_predicate": "is_any_of",
+                                  "filter_term": []
+                              }
+                          ],
+                          "columns_keys": [],
+                          "filter_conjunction": "Or",
+                          "filters": [],
+                          "sorts": [
+                              {
+                                  "column_key": "8m4h",
+                                  "sort_type": "down"
+                              }
+                          ],
+                          "groupbys": [],
+                          "hidden_columns": []
+                      },
+                      {
+                          "_id": "closed",
+                          "name": "Closed",
+                          "type": "table",
+                          "basic_filters": [
+                              {
+                                  "column_key": "dM50",
+                                  "filter_predicate": "is_any_of",
+                                  "filter_term": [
+                                      "0002"
+                                  ]
+                              },
+                              {
+                                  "column_key": "O509",
+                                  "filter_predicate": "is_any_of",
+                                  "filter_term": []
+                              },
+                              {
+                                  "column_key": "WCRn",
+                                  "filter_predicate": "is_any_of",
+                                  "filter_term": []
+                              }
+                          ],
+                          "columns_keys": [],
+                          "filter_conjunction": "Or",
+                          "filters": [],
+                          "sorts": [
+                              {
+                                  "column_key": "8m4h",
+                                  "sort_type": "down"
+                              }
+                          ],
+                          "groupbys": [],
+                          "hidden_columns": []
+                      }
+                  ],
+                  "navigation": [
+                      {
+                          "_id": "open",
+                          "type": "view"
+                      },
+                      {
+                          "_id": "closed",
+                          "type": "view"
+                      }
+                  ]
+              }
         '403':
           description: Permission denied
         '404':
@@ -2471,9 +2542,6 @@ paths:
                   type: string
                   description: View type (table, kanban, etc.)
                   default: table
-                folder_id:
-                  type: string
-                  description: Parent folder ID (optional)
                 data:
                   type: object
                   description: Additional view configuration
@@ -2487,6 +2555,43 @@ paths:
                 properties:
                   view:
                     $ref: '#/components/schemas/TicketView'
+              example: {
+                  "view": {
+                      "_id": "qjrv",
+                      "table_id": "0000",
+                      "name": "ticket_view",
+                      "basic_filters": [
+                          {
+                              "column_key": "state",
+                              "filter_predicate": "is_any_of",
+                              "filter_term": [
+                                  "open"
+                              ]
+                          },
+                          {
+                              "column_key": "O509",
+                              "filter_predicate": "is_any_of",
+                              "filter_term": []
+                          },
+                          {
+                              "column_key": "WCRn",
+                              "filter_predicate": "has_any_of",
+                              "filter_term": []
+                          }
+                      ],
+                      "filters": [],
+                      "sorts": [
+                          {
+                              "column_key": "8m4h",
+                              "sort_type": "down"
+                          }
+                      ],
+                      "groupbys": [],
+                      "filter_conjunction": "Or",
+                      "hidden_columns": [],
+                      "type": "table"
+                  }
+              }
         '400':
           description: Bad Request
         '403':
@@ -2515,6 +2620,118 @@ paths:
                 properties:
                   view:
                     $ref: '#/components/schemas/TicketView'
+              example: {
+                    "tickets": [
+                        {
+                            "_pk": 1,
+                            "rjiF": "1",
+                            "z10g": "0010",
+                            "O509": null,
+                            "WCRn": null,
+                            "38V6": null,
+                            "SQGI": [
+                                "a475f61317b24c50b6fbf7c5f57860f8@auth.local"
+                            ],
+                            "cAE3": 0,
+                            "xw5R": "a475f61317b24c50b6fbf7c5f57860f8@auth.local"
+                        }
+                    ],
+                    "columns": [
+                        {
+                            "key": "_pk",
+                            "name": "_pk",
+                            "type": "float64",
+                            "data": null
+                        },
+                        {
+                            "key": "rjiF",
+                            "name": "title",
+                            "type": "text",
+                            "data": null
+                        },
+                        {
+                            "key": "z10g",
+                            "name": "substate",
+                            "type": "single-select",
+                            "data": {
+                                "cascade_column_key": "dM50",
+                                "cascade_settings": {
+                                    "0001": [
+                                        "0010",
+                                        "0012"
+                                    ],
+                                    "0002": [
+                                        "0013",
+                                        "0014",
+                                        "0015"
+                                    ]
+                                },
+                                "options": [
+                                    {
+                                        "color": "#59CB74",
+                                        "id": "0010",
+                                        "name": "New",
+                                        "text_color": "#FFFFFF"
+                                    },
+                                    {
+                                        "color": "#46A1FD",
+                                        "id": "0012",
+                                        "name": "Working on",
+                                        "text_color": "#FFFFFF"
+                                    },
+                                    {
+                                        "color": "#8250DF",
+                                        "id": "0013",
+                                        "name": "Completed",
+                                        "text_color": "#FFFFFF"
+                                    },
+                                    {
+                                        "color": "#59636E",
+                                        "id": "0014",
+                                        "name": "Not planned",
+                                        "text_color": "#FFFFFF"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "key": "O509",
+                            "name": "type",
+                            "type": "single-select",
+                            "data": null
+                        },
+                        {
+                            "key": "WCRn",
+                            "name": "tags",
+                            "type": "multiple-select",
+                            "data": null
+                        },
+                        {
+                            "key": "38V6",
+                            "name": "assignees",
+                            "type": "list",
+                            "data": null
+                        },
+                        {
+                            "key": "SQGI",
+                            "name": "participants",
+                            "type": "list",
+                            "data": null
+                        },
+                        {
+                            "key": "cAE3",
+                            "name": "priority",
+                            "type": "int64",
+                            "data": null
+                        },
+                        {
+                            "key": "xw5R",
+                            "name": "creator",
+                            "type": "text",
+                            "data": null
+                        }
+                    ]
+                }
         '403':
           description: Permission denied
         '404':
@@ -2587,15 +2804,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/project_uuid'
         - $ref: '#/components/parameters/view_id'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                folder_id:
-                  type: string
-                  description: Parent folder ID (if view is in a folder)
       responses:
         '200':
           description: OK
@@ -2616,7 +2824,7 @@ paths:
       tags:
         - Ticket Views
       summary: Move ticket view
-      description: Move a view or folder to another position in the navigation.
+      description: Move a view to another position in the navigation.
       security:
         - AccountTokenAuth: []
       parameters:
@@ -2631,19 +2839,9 @@ paths:
                 source_view_id:
                   type: string
                   description: ID of the view to move
-                source_folder_id:
-                  type: string
-                  description: ID of the folder to move
                 target_view_id:
                   type: string
                   description: Target view ID to move before
-                target_folder_id:
-                  type: string
-                  description: Target folder ID to move into or before
-                is_above_folder:
-                  type: boolean
-                  description: Whether to place above the folder
-                  default: false
       responses:
         '200':
           description: OK
@@ -2661,6 +2859,26 @@ paths:
                           type: string
                         type:
                           type: string
+              example: {
+                  "navigation": [
+                      {
+                          "_id": "open",
+                          "type": "view"
+                      },
+                      {
+                          "_id": "closed",
+                          "type": "view"
+                      },
+                      {
+                          "_id": "jl2i",
+                          "type": "view"
+                      },
+                      {
+                          "_id": "qnoi",
+                          "type": "view"
+                      }
+                  ]
+              }
         '400':
           description: Bad Request
         '403':
@@ -2703,6 +2921,43 @@ paths:
                 properties:
                   view:
                     $ref: '#/components/schemas/TicketView'
+              example: {
+                  "view": {
+                      "_id": "by1l",
+                      "table_id": "0000",
+                      "name": "duplicate view",
+                      "basic_filters": [
+                          {
+                              "column_key": "state",
+                              "filter_predicate": "is_any_of",
+                              "filter_term": [
+                                  "open"
+                              ]
+                          },
+                          {
+                              "column_key": "O509",
+                              "filter_predicate": "is_any_of",
+                              "filter_term": []
+                          },
+                          {
+                              "column_key": "WCRn",
+                              "filter_predicate": "has_any_of",
+                              "filter_term": []
+                          }
+                      ],
+                      "filters": [],
+                      "sorts": [
+                          {
+                              "column_key": "8m4h",
+                              "sort_type": "down"
+                          }
+                      ],
+                      "groupbys": [],
+                      "filter_conjunction": "Or",
+                      "hidden_columns": [],
+                      "type": "table"
+                  }
+              }
         '400':
           description: Bad Request
         '403':
