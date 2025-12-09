@@ -444,386 +444,7 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/TicketColumns'
-        '400':
-          description: Bad Request
-        '403':
-          description: Permission denied
-        '404':
-          description: Project not found
-
-    post:
-      tags:
-        - Tickets
-      summary: Create a ticket
-      description: Create a new ticket in the project.
-      security:
-        - AccountTokenAuth: []
-      parameters:
-        - $ref: '#/components/parameters/project_uuid'
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required:
-                - title
-                - content
-              properties:
-                title:
-                  type: string
-                  description: Title of the ticket
-                content:
-                  type: string
-                  description: JSON string containing text, images, and links
-                  example: '{"text": "Ticket content", "images": [], "links": []}'
-                assignees:
-                  type: string
-                  description: JSON array of assignee usernames
-                  example: '["user1@example.com"]'
-                type:
-                  type: string
-                  description: Type name of the ticket
-                substate:
-                  type: string
-                  description: Substate name of the ticket
-                priority:
-                  type: integer
-                  description: Priority level (0-5)
-                  default: 0
-                tags:
-                  type: string
-                  description: JSON array of tag names
-                  example: '["bug", "urgent"]'
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ticket:
-                    $ref: '#/components/schemas/TicketData'
-        '400':
-          description: Bad Request
-        '403':
-          description: Permission denied
-        '404':
-          description: Project not found
-        '429':
-          description: Too many requests - Cannot be created again within 30 seconds
-
-    put:
-      tags:
-        - Tickets
-      summary: Batch update tickets
-      description: Update multiple tickets at once.
-      security:
-        - AccountTokenAuth: []
-      parameters:
-        - $ref: '#/components/parameters/project_uuid'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - tickets_data
-              properties:
-                tickets_data:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      row_id:
-                        type: string
-                        description: Ticket ID (primary key)
-                      row:
-                        type: object
-                        description: Fields to update
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
-          description: Bad Request
-        '403':
-          description: Permission denied
-        '404':
-          description: Project not found
-
-    delete:
-      tags:
-        - Tickets
-      summary: Batch delete tickets
-      description: Delete multiple tickets (soft delete).
-      security:
-        - AccountTokenAuth: []
-      parameters:
-        - $ref: '#/components/parameters/project_uuid'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - ticket_ids
-              properties:
-                ticket_ids:
-                  type: array
-                  items:
-                    type: string
-                  description: List of ticket IDs to delete
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: array
-                    items:
-                      type: string
-                    description: Successfully deleted ticket IDs
-                  failed:
-                    type: array
-                    items:
-                      type: string
-                    description: Failed to delete ticket IDs
-        '400':
-          description: Bad Request
-        '403':
-          description: Permission denied
-        '404':
-          description: Project not found
-
-  # ==================== Single Ticket ====================
-  /api/v2.1/project/{project_uuid}/tickets/{ticket_id}/:
-    get:
-      tags:
-        - Tickets
-      summary: Get a ticket
-      description: Get detailed information of a specific ticket including replies.
-      security:
-        - AccountTokenAuth: []
-      parameters:
-        - $ref: '#/components/parameters/project_uuid'
-        - $ref: '#/components/parameters/ticket_id'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ticket:
-                    allOf:
-                      - $ref: '#/components/schemas/TicketData'
-                      - type: object
-                        properties:
-                          replies:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                number:
-                                  type: integer
-                                content:
-                                  type: string
-                                created_time:
-                                  type: string
-                                modified_time:
-                                  type: string
-                                creator:
-                                  type: string
-        '403':
-          description: Permission denied
-        '404':
-          description: Ticket not found
-
-    put:
-      tags:
-        - Tickets
-      summary: Update a ticket
-      description: Update a specific ticket.
-      security:
-        - AccountTokenAuth: []
-      parameters:
-        - $ref: '#/components/parameters/project_uuid'
-        - $ref: '#/components/parameters/ticket_id'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                  description: New title
-                content:
-                  type: string
-                  description: JSON string containing text, images, and links
-                state:
-                  type: string
-                  description: New state (open, closed, etc.)
-                type:
-                  type: string
-                  description: Type name
-                substate:
-                  type: string
-                  description: Substate name
-                priority:
-                  type: integer
-                  description: Priority level (0-5)
-                assignees:
-                  type: string
-                  description: JSON array of assignee usernames
-                tags:
-                  type: string
-                  description: JSON array of tag names
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
-          description: Bad Request
-        '403':
-          description: Permission denied
-        '404':
-          description: Ticket not found
-
-    delete:
-      tags:
-        - Tickets
-      summary: Delete a ticket
-      description: Delete a specific ticket.
-      security:
-        - AccountTokenAuth: []
-      parameters:
-        - $ref: '#/components/parameters/project_uuid'
-        - $ref: '#/components/parameters/ticket_id'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '403':
-          description: Permission denied
-        '404':
-          description: Ticket not found
-
-  /api/v2.1/project/{project_uuid}/tickets/search/:
-    get:
-      tags:
-        - Tickets
-      summary: Search tickets
-      description: Search tickets by query string.
-      security:
-        - AccountTokenAuth: []
-      parameters:
-        - $ref: '#/components/parameters/project_uuid'
-        - $ref: '#/components/parameters/query'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  tickets:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        _pk:
-                          type: integer
-                        title:
-                          type: string
-        '403':
-          description: Permission denied
-        '404':
-          description: Project not found
-
-  /api/v2.1/project/{project_uuid}/my-tickets/:
-    get:
-      tags:
-        - Tickets
-      summary: List my tickets
-      description: List tickets where the current user is a participant.
-      security:
-        - AccountTokenAuth: []
-      parameters:
-        - $ref: '#/components/parameters/project_uuid'
-        - $ref: '#/components/parameters/start'
-        - $ref: '#/components/parameters/limit'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  tickets:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/TicketKeysData'
-                  columns:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/TicketColumns'
-        '403':
-          description: Permission denied
-        '404':
-          description: Project not found
-
-  /api/v2.1/project/{project_uuid}/ticket/metadata/:
-    get:
-      tags:
-        - Tickets
-      summary: Get ticket metadata
-      description: Get metadata for ticket select columns (states, types, tags, substates).
-      security:
-        - AccountTokenAuth: []
-      parameters:
-        - $ref: '#/components/parameters/project_uuid'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  states:
-                    type: object
-                    description: State column options
-                  types:
-                    type: object
-                    description: Type column options
-                  tags:
-                    type: object
-                    description: Tags column options
-                  substates:
-                    type: object
-                    description: Substate column options
-              example:
-                {
+              example: {
                   "tickets": [
                       {
                           "_pk": 1,
@@ -1029,13 +650,686 @@ paths:
                       }
                   ]
               }
+        '400':
+          description: Bad Request
+        '403':
+          description: Permission denied
+        '404':
+          description: Project not found
+
+    post:
+      tags:
+        - Tickets
+      summary: Create a ticket
+      description: Create a new ticket in the project.
+      security:
+        - AccountTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/project_uuid'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - title
+                - content
+              properties:
+                title:
+                  type: string
+                  description: Title of the ticket
+                content:
+                  type: string
+                  description: JSON string containing text, images, and links
+                  example: '{"text": "Ticket content", "images": [], "links": []}'
+                assignees:
+                  type: string
+                  description: JSON array of assignee usernames
+                  example: '["user1@example.com"]'
+                type:
+                  type: string
+                  description: Type name of the ticket
+                substate:
+                  type: string
+                  description: Substate name of the ticket
+                priority:
+                  type: integer
+                  description: Priority level (0-5)
+                  default: 0
+                tags:
+                  type: string
+                  description: JSON array of tag names
+                  example: '["bug", "urgent"]'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ticket:
+                    $ref: '#/components/schemas/TicketData'
+              example: {
+                  "ticket": {
+                      "title": "Ticket",
+                      "content": "Ticket content\n",
+                      "state": "open",
+                      "type": "",
+                      "substate": "New",
+                      "priority": 0,
+                      "assignees": [],
+                      "participants": [
+                          "a475f61317b24c50b6fbf7c5f57860f8@auth.local"
+                      ],
+                      "tags": [],
+                      "creator": "a475f61317b24c50b6fbf7c5f57860f8@auth.local",
+                      "comment_count": 0,
+                      "created_time": "2025-12-09T07:17:41.640909+00:00",
+                      "modified_time": "2025-12-09T07:17:41.640909+00:00",
+                      "deleted": false,
+                      "_pk": 201
+                  }
+              }
+        '400':
+          description: Bad Request
+        '403':
+          description: Permission denied
+        '404':
+          description: Project not found
+        '429':
+          description: Too many requests - Cannot be created again within 30 seconds
+
+    put:
+      tags:
+        - Tickets
+      summary: Batch update tickets
+      description: Update multiple tickets at once.
+      security:
+        - AccountTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/project_uuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tickets_data
+              properties:
+                tickets_data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      row_id:
+                        type: string
+                        description: Ticket ID (primary key)
+                      row:
+                        type: object
+                        description: Fields to update
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+        '403':
+          description: Permission denied
+        '404':
+          description: Project not found
+
+    delete:
+      tags:
+        - Tickets
+      summary: Batch delete tickets
+      description: Delete multiple tickets (soft delete).
+      security:
+        - AccountTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/project_uuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ticket_ids
+              properties:
+                ticket_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: List of ticket IDs to delete
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: array
+                    items:
+                      type: string
+                    description: Successfully deleted ticket IDs
+                  failed:
+                    type: array
+                    items:
+                      type: string
+                    description: Failed to delete ticket IDs
+        '400':
+          description: Bad Request
+        '403':
+          description: Permission denied
+        '404':
+          description: Project not found
+
+  # ==================== Single Ticket ====================
+  /api/v2.1/project/{project_uuid}/tickets/{ticket_id}/:
+    get:
+      tags:
+        - Tickets
+      summary: Get a ticket
+      description: Get detailed information of a specific ticket including replies.
+      security:
+        - AccountTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/project_uuid'
+        - $ref: '#/components/parameters/ticket_id'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ticket:
+                    allOf:
+                      - $ref: '#/components/schemas/TicketData'
+                      - type: object
+                        properties:
+                          replies:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                number:
+                                  type: integer
+                                content:
+                                  type: string
+                                created_time:
+                                  type: string
+                                modified_time:
+                                  type: string
+                                creator:
+                                  type: string
+              example: {
+                    "ticket": {
+                        "_pk": 1,
+                        "title": "Ticket",
+                        "content": "Ticket content\n",
+                        "state": "0001",
+                        "substate": "0010",
+                        "type": null,
+                        "tags": null,
+                        "assignees": null,
+                        "participants": [
+                            "a475f61317b24c50b6fbf7c5f57860f8@auth.local"
+                        ],
+                        "priority": 0,
+                        "creator": "a475f61317b24c50b6fbf7c5f57860f8@auth.local",
+                        "comment_count": 0,
+                        "created_time": "2025-12-08T22:00:22.564009-10:00",
+                        "modified_time": "2025-12-08T22:00:22.564009-10:00",
+                        "closed_time": null,
+                        "deleted": false
+                    }
+                }
+        '403':
+          description: Permission denied
+        '404':
+          description: Ticket not found
+
+    put:
+      tags:
+        - Tickets
+      summary: Update a ticket
+      description: Update a specific ticket.
+      security:
+        - AccountTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/project_uuid'
+        - $ref: '#/components/parameters/ticket_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: New title
+                content:
+                  type: string
+                  description: JSON string containing text, images, and links
+                state:
+                  type: string
+                  description: New state (open, closed, etc.)
+                type:
+                  type: string
+                  description: Type name
+                substate:
+                  type: string
+                  description: Substate name
+                priority:
+                  type: integer
+                  description: Priority level (0-5)
+                assignees:
+                  type: string
+                  description: JSON array of assignee usernames
+                tags:
+                  type: string
+                  description: JSON array of tag names
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+        '403':
+          description: Permission denied
+        '404':
+          description: Ticket not found
+
+    delete:
+      tags:
+        - Tickets
+      summary: Delete a ticket
+      description: Delete a specific ticket.
+      security:
+        - AccountTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/project_uuid'
+        - $ref: '#/components/parameters/ticket_id'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '403':
+          description: Permission denied
+        '404':
+          description: Ticket not found
+
+  /api/v2.1/project/{project_uuid}/tickets/search/:
+    get:
+      tags:
+        - Tickets
+      summary: Search tickets
+      description: Search tickets by query string.
+      security:
+        - AccountTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/project_uuid'
+        - $ref: '#/components/parameters/query'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tickets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _pk:
+                          type: integer
+                        title:
+                          type: string
+              example: {"tickets":[{"_pk":1,"title":"Ticket"}]}
+        '403':
+          description: Permission denied
+        '404':
+          description: Project not found
+
+  /api/v2.1/project/{project_uuid}/my-tickets/:
+    get:
+      tags:
+        - Tickets
+      summary: List my tickets
+      description: List tickets where the current user is a participant.
+      security:
+        - AccountTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/project_uuid'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tickets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TicketKeysData'
+                  columns:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TicketColumns'
+              example: {
+                  "tickets": [
+                      {
+                          "_pk": 1,
+                          "3dig": "Ticket",
+                          "0u2z": "Ticket content\n",
+                          "mC1b": "0001",
+                          "WOA4": "0010",
+                          "eJ9j": null,
+                          "NSnv": null,
+                          "Wkqo": null,
+                          "jeg8": [
+                              "a475f61317b24c50b6fbf7c5f57860f8@auth.local"
+                          ],
+                          "f5a7": 0,
+                          "n5y0": "a475f61317b24c50b6fbf7c5f57860f8@auth.local",
+                          "07tG": 0,
+                          "KBTQ": "2025-12-08T22:00:22.564009-10:00",
+                          "P47D": "2025-12-08T22:00:22.564009-10:00",
+                          "V9B8": null,
+                          "702F": false
+                      }
+                  ],
+                  "columns": [
+                      {
+                          "key": "_pk",
+                          "name": "_pk",
+                          "type": "float64",
+                          "data": null
+                      },
+                      {
+                          "key": "3dig",
+                          "name": "title",
+                          "type": "text",
+                          "data": null
+                      },
+                      {
+                          "key": "0u2z",
+                          "name": "content",
+                          "type": "text",
+                          "data": null
+                      },
+                      {
+                          "key": "mC1b",
+                          "name": "state",
+                          "type": "single-select",
+                          "data": {
+                              "options": [
+                                  {
+                                      "color": "#1A7F37",
+                                      "id": "0001",
+                                      "name": "open",
+                                      "text_color": "#FFFFFF"
+                                  },
+                                  {
+                                      "color": "#8250DF",
+                                      "id": "0002",
+                                      "name": "closed",
+                                      "text_color": "#FFFFFF"
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "key": "WOA4",
+                          "name": "substate",
+                          "type": "single-select",
+                          "data": {
+                              "cascade_column_key": "mC1b",
+                              "cascade_settings": {
+                                  "0001": [
+                                      "0010",
+                                      "0011",
+                                      "0012"
+                                  ],
+                                  "0002": [
+                                      "0013",
+                                      "0014",
+                                      "0015"
+                                  ]
+                              },
+                              "options": [
+                                  {
+                                      "color": "#59CB74",
+                                      "id": "0010",
+                                      "name": "New",
+                                      "text_color": "#FFFFFF"
+                                  },
+                                  {
+                                      "color": "#9C9C9E",
+                                      "id": "0011",
+                                      "name": "Backlog",
+                                      "text_color": "#FFFFFF"
+                                  },
+                                  {
+                                      "color": "#46A1FD",
+                                      "id": "0012",
+                                      "name": "Working on",
+                                      "text_color": "#FFFFFF"
+                                  },
+                                  {
+                                      "color": "#8250DF",
+                                      "id": "0013",
+                                      "name": "Completed",
+                                      "text_color": "#FFFFFF"
+                                  },
+                                  {
+                                      "color": "#59636E",
+                                      "id": "0014",
+                                      "name": "Not planned",
+                                      "text_color": "#FFFFFF"
+                                  },
+                                  {
+                                      "color": "#59636E",
+                                      "id": "0015",
+                                      "name": "Duplicate",
+                                      "text_color": "#FFFFFF"
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "key": "eJ9j",
+                          "name": "type",
+                          "type": "single-select",
+                          "data": null
+                      },
+                      {
+                          "key": "NSnv",
+                          "name": "tags",
+                          "type": "multiple-select",
+                          "data": null
+                      },
+                      {
+                          "key": "Wkqo",
+                          "name": "assignees",
+                          "type": "list",
+                          "data": null
+                      },
+                      {
+                          "key": "jeg8",
+                          "name": "participants",
+                          "type": "list",
+                          "data": null
+                      },
+                      {
+                          "key": "f5a7",
+                          "name": "priority",
+                          "type": "int64",
+                          "data": null
+                      },
+                      {
+                          "key": "n5y0",
+                          "name": "creator",
+                          "type": "text",
+                          "data": null
+                      },
+                      {
+                          "key": "KBTQ",
+                          "name": "created_time",
+                          "type": "datetime",
+                          "data": null
+                      },
+                      {
+                          "key": "P47D",
+                          "name": "modified_time",
+                          "type": "datetime",
+                          "data": null
+                      },
+                      {
+                          "key": "V9B8",
+                          "name": "closed_time",
+                          "type": "datetime",
+                          "data": null
+                      }
+                  ]
+              }
+        '403':
+          description: Permission denied
+        '404':
+          description: Project not found
+
+  /api/v2.1/project/{project_uuid}/ticket/metadata/:
+    get:
+      tags:
+        - Tickets
+      summary: Get ticket metadata
+      description: Get metadata for ticket select columns (states, types, tags, substates).
+      security:
+        - AccountTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/project_uuid'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  states:
+                    type: object
+                    description: State column options
+                  types:
+                    type: object
+                    description: Type column options
+                  tags:
+                    type: object
+                    description: Tags column options
+                  substates:
+                    type: object
+                    description: Substate column options
+              example:
+                {
+                  "states": {
+                      "options": [
+                          {
+                              "color": "#1A7F37",
+                              "id": "0001",
+                              "name": "open",
+                              "text_color": "#FFFFFF"
+                          },
+                          {
+                              "color": "#8250DF",
+                              "id": "0002",
+                              "name": "closed",
+                              "text_color": "#FFFFFF"
+                          }
+                      ]
+                  },
+                  "substates": {
+                      "cascade_column_key": "mC1b",
+                      "cascade_settings": {
+                          "0001": [
+                              "0010",
+                              "0011",
+                              "0012"
+                          ],
+                          "0002": [
+                              "0013",
+                              "0014",
+                              "0015"
+                          ]
+                      },
+                      "options": [
+                          {
+                              "color": "#59CB74",
+                              "id": "0010",
+                              "name": "New",
+                              "text_color": "#FFFFFF"
+                          },
+                          {
+                              "color": "#9C9C9E",
+                              "id": "0011",
+                              "name": "Backlog",
+                              "text_color": "#FFFFFF"
+                          },
+                          {
+                              "color": "#46A1FD",
+                              "id": "0012",
+                              "name": "Working on",
+                              "text_color": "#FFFFFF"
+                          },
+                          {
+                              "color": "#8250DF",
+                              "id": "0013",
+                              "name": "Completed",
+                              "text_color": "#FFFFFF"
+                          },
+                          {
+                              "color": "#59636E",
+                              "id": "0014",
+                              "name": "Not planned",
+                              "text_color": "#FFFFFF"
+                          },
+                          {
+                              "color": "#59636E",
+                              "id": "0015",
+                              "name": "Duplicate",
+                              "text_color": "#FFFFFF"
+                          }
+                      ]
+                  },
+                  "types": {},
+                  "tags": {}
+              }
         '403':
           description: Permission denied
         '404':
           description: Project not found
 
   # ==================== Ticket Replies ====================
-  /api/v2.1/project/{project_uuid}/tickets/{ticket_id}/replies/:
+  /api/v2.1/project/{project_uuid}/tickets/{ticket_id}/comments/:
     get:
       tags:
         - Ticket Replies
@@ -1060,6 +1354,19 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/TicketReply'
+              example: {
+                  "ticket_comments": [
+                      {
+                          "_pk": 1,
+                          "ticket_id": 1,
+                          "content": "Ticket comment\n",
+                          "creator": "a475f61317b24c50b6fbf7c5f57860f8@auth.local",
+                          "created_time": "2025-12-08T22:09:16.304459-10:00",
+                          "modified_time": "2025-12-08T22:09:16.304459-10:00",
+                          "deleted": false
+                      }
+                  ]
+              }
         '403':
           description: Permission denied
         '404':
@@ -1098,6 +1405,19 @@ paths:
                 properties:
                   ticket_reply:
                     $ref: '#/components/schemas/TicketReply'
+              example: {
+                  "ticket_comments": [
+                      {
+                          "_pk": 1,
+                          "ticket_id": 1,
+                          "content": "Ticket comment\n",
+                          "creator": "a475f61317b24c50b6fbf7c5f57860f8@auth.local",
+                          "created_time": "2025-12-08T22:09:16.304459-10:00",
+                          "modified_time": "2025-12-08T22:09:16.304459-10:00",
+                          "deleted": false
+                      }
+                  ]
+              }
         '400':
           description: Bad Request
         '403':
@@ -1141,6 +1461,19 @@ paths:
                 properties:
                   ticket_reply:
                     $ref: '#/components/schemas/TicketReply'
+              example: {
+                  "ticket_comments": [
+                      {
+                          "_pk": 1,
+                          "ticket_id": 1,
+                          "content": "Ticket comment\n",
+                          "creator": "a475f61317b24c50b6fbf7c5f57860f8@auth.local",
+                          "created_time": "2025-12-08T22:09:16.304459-10:00",
+                          "modified_time": "2025-12-08T22:09:16.304459-10:00",
+                          "deleted": false
+                      }
+                  ]
+              }
         '400':
           description: Bad Request
         '403':
@@ -1196,6 +1529,18 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/TagOption'
+              example: {
+                    "tags": [
+                        {
+                            "color": "#FFFCB5",
+                            "description": "",
+                            "id": "bfJS",
+                            "name": "tag",
+                            "text_color": "#212529",
+                            "tickets_count": 0
+                        }
+                    ]
+                }
         '403':
           description: Permission denied
         '404':
