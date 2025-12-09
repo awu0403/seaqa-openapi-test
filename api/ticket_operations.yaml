@@ -4,13 +4,13 @@ info:
   description: |-
     SeaQA Ticket Operations API Reference (OpenAPI 3.0).
     
-    This API allows you to manage tickets, ticket replies, tags, types, substates, and views in SeaQA projects.
+    This API allows you to manage tickets, Ticket comment, tags, types, substates, and views in SeaQA projects.
   version: '1.0'
 servers:
   - url: https://{server}
     variables: 
       server:
-        default: cloud.seafile.com
+        default: cloud.seaticket.com
 
 x-readme:
   explorer-enabled: true
@@ -45,10 +45,10 @@ components:
       schema:
         type: integer
 
-    reply_id:
-      name: reply_id
+    comment_id:
+      name: comment_id
       in: path
-      description: The unique identifier of a ticket reply
+      description: The unique identifier of a ticket comment
       example: 1
       required: true
       schema:
@@ -226,15 +226,19 @@ components:
           description: State of the ticket (open, closed, etc.)
         type:
           type: string
+          nullable: true
           description: Type of the ticket
         substate:
           type: string
           description: Substate of the ticket
         priority:
           type: integer
+          minimum: 0
+          maximum: 5
           description: Priority level (0-5)
         assignees:
           type: array
+          nullable: true
           items:
             type: string
           description: List of assignee usernames
@@ -245,15 +249,16 @@ components:
           description: List of participant usernames
         tags:
           type: array
+          nullable: true
           items:
             type: string
           description: List of tag names
         creator:
           type: string
           description: Creator username
-        reply_count:
+        comment_count:
           type: integer
-          description: Number of replies
+          description: Number of comments/replies
         created_time:
           type: string
           format: date-time
@@ -270,16 +275,39 @@ components:
         properties:
           key:
             type: string
-            description: column key
+            description: Column key
           name:
             type: string
-            description: column name
+            description: Column name
           type: 
             type: string
-            description: column type
+            description: Column type (text, single-select, multiple-select, list, int64, float64, datetime, etc.)
           data:
-            type: string
-            description: column data
+            type: object
+            nullable: true
+            description: Column data containing options for select types
+            properties:
+              options:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+                    color:
+                      type: string
+                    text_color:
+                      type: string
+                    description:
+                      type: string
+              cascade_column_key:
+                type: string
+                description: Key of the cascade column for substate
+              cascade_settings:
+                type: object
+                description: Mapping of parent option IDs to child option IDs
 
     TicketReply:
       type: object
@@ -299,9 +327,14 @@ components:
         created_time:
           type: string
           format: date-time
+          description: Creation timestamp
         modified_time:
           type: string
           format: date-time
+          description: Last modification timestamp
+        deleted:
+          type: boolean
+          description: Whether the reply is deleted
 
     TagOption:
       type: object
@@ -374,16 +407,23 @@ components:
           description: Name of the view
         type:
           type: string
-          description: Type of view (table, kanban, etc.)
+          description: Type of view (table, etc.)
+          enum:
+            - table
+        basic_filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ViewFilter'
+          description: Basic filter conditions for state, type, tags
         filters:
           type: array
           items:
-            type: object
-          description: Filter conditions
+            $ref: '#/components/schemas/ViewFilter'
+          description: Advanced filter conditions
         sorts:
           type: array
           items:
-            type: object
+            $ref: '#/components/schemas/ViewSort'
           description: Sort conditions
         groupbys:
           type: array
@@ -393,11 +433,56 @@ components:
         filter_conjunction:
           type: string
           description: Filter conjunction (And/Or)
+          enum:
+            - And
+            - Or
         hidden_columns:
           type: array
           items:
             type: string
           description: Hidden column keys
+        columns_keys:
+          type: array
+          items:
+            type: string
+          description: Visible column keys in order
+
+    ViewFilter:
+      type: object
+      properties:
+        column_key:
+          type: string
+          description: Key of the column to filter
+        filter_predicate:
+          type: string
+          description: Filter predicate type
+          enum:
+            - is_any_of
+            - is_none_of
+            - has_any_of
+            - has_none_of
+            - contains
+            - not_contain
+            - is_empty
+            - is_not_empty
+        filter_term:
+          type: array
+          items:
+            type: string
+          description: Filter values
+
+    ViewSort:
+      type: object
+      properties:
+        column_key:
+          type: string
+          description: Key of the column to sort
+        sort_type:
+          type: string
+          description: Sort direction
+          enum:
+            - up
+            - down
 
     SuccessResponse:
       type: object
@@ -417,6 +502,7 @@ paths:
   # ==================== Tickets ====================
   /api/v2.1/project/{project_uuid}/tickets/:
     get:
+      operationId: listTickets
       tags:
         - Tickets
       summary: List tickets
@@ -652,12 +738,25 @@ paths:
               }
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '403':
           description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
     post:
+      operationId: createTicket
       tags:
         - Tickets
       summary: Create a ticket
@@ -742,6 +841,7 @@ paths:
           description: Too many requests - Cannot be created again within 30 seconds
 
     put:
+      operationId: batchUpdateTickets
       tags:
         - Tickets
       summary: Batch update tickets
@@ -785,6 +885,7 @@ paths:
           description: Project not found
 
     delete:
+      operationId: batchDeleteTickets
       tags:
         - Tickets
       summary: Batch delete tickets
@@ -835,6 +936,7 @@ paths:
   # ==================== Single Ticket ====================
   /api/v2.1/project/{project_uuid}/tickets/{ticket_id}/:
     get:
+      operationId: getTicket
       tags:
         - Tickets
       summary: Get a ticket
@@ -900,6 +1002,7 @@ paths:
           description: Ticket not found
 
     put:
+      operationId: updateTicket
       tags:
         - Tickets
       summary: Update a ticket
@@ -954,6 +1057,7 @@ paths:
           description: Ticket not found
 
     delete:
+      operationId: deleteTicket
       tags:
         - Tickets
       summary: Delete a ticket
@@ -977,6 +1081,7 @@ paths:
 
   /api/v2.1/project/{project_uuid}/tickets/search/:
     get:
+      operationId: searchTickets
       tags:
         - Tickets
       summary: Search tickets
@@ -1011,6 +1116,7 @@ paths:
 
   /api/v2.1/project/{project_uuid}/my-tickets/:
     get:
+      operationId: listMyTickets
       tags:
         - Tickets
       summary: List my tickets
@@ -1221,6 +1327,7 @@ paths:
 
   /api/v2.1/project/{project_uuid}/ticket/metadata/:
     get:
+      operationId: getTicketMetadata
       tags:
         - Tickets
       summary: Get ticket metadata
@@ -1328,12 +1435,13 @@ paths:
         '404':
           description: Project not found
 
-  # ==================== Ticket Replies ====================
+  # ==================== Ticket comments ====================
   /api/v2.1/project/{project_uuid}/tickets/{ticket_id}/comments/:
     get:
+      operationId: listTicketComments
       tags:
-        - Ticket Replies
-      summary: List ticket replies
+        - Ticket comments
+      summary: List Ticket comments
       description: List replies for a specific ticket with pagination.
       security:
         - AccountTokenAuth: []
@@ -1350,7 +1458,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  ticket_replies:
+                  ticket_comments:
                     type: array
                     items:
                       $ref: '#/components/schemas/TicketReply'
@@ -1373,8 +1481,9 @@ paths:
           description: Ticket not found
 
     post:
+      operationId: createTicketComment
       tags:
-        - Ticket Replies
+        - Ticket comments
       summary: Create a ticket reply
       description: Add a reply to a ticket.
       security:
@@ -1403,20 +1512,18 @@ paths:
               schema:
                 type: object
                 properties:
-                  ticket_reply:
+                  ticket_comment:
                     $ref: '#/components/schemas/TicketReply'
               example: {
-                  "ticket_comments": [
-                      {
-                          "_pk": 1,
-                          "ticket_id": 1,
-                          "content": "Ticket comment\n",
-                          "creator": "a475f61317b24c50b6fbf7c5f57860f8@auth.local",
-                          "created_time": "2025-12-08T22:09:16.304459-10:00",
-                          "modified_time": "2025-12-08T22:09:16.304459-10:00",
-                          "deleted": false
-                      }
-                  ]
+                  "ticket_comment": {
+                      "_pk": 1,
+                      "ticket_id": 1,
+                      "content": "Ticket comment\n",
+                      "creator": "a475f61317b24c50b6fbf7c5f57860f8@auth.local",
+                      "created_time": "2025-12-08T22:09:16.304459-10:00",
+                      "modified_time": "2025-12-08T22:09:16.304459-10:00",
+                      "deleted": false
+                  }
               }
         '400':
           description: Bad Request
@@ -1427,10 +1534,11 @@ paths:
         '429':
           description: Too many requests - Cannot be created again within 30 seconds
 
-  /api/v2.1/project/{project_uuid}/tickets/{ticket_id}/replies/{reply_id}/:
+  /api/v2.1/project/{project_uuid}/tickets/{ticket_id}/comments/{comment_id}/:
     put:
+      operationId: updateTicketComment
       tags:
-        - Ticket Replies
+        - Ticket comments
       summary: Update a ticket reply
       description: Update an existing ticket reply.
       security:
@@ -1438,7 +1546,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/project_uuid'
         - $ref: '#/components/parameters/ticket_id'
-        - $ref: '#/components/parameters/reply_id'
+        - $ref: '#/components/parameters/comment_id'
       requestBody:
         required: true
         content:
@@ -1459,20 +1567,18 @@ paths:
               schema:
                 type: object
                 properties:
-                  ticket_reply:
+                  ticket_comment:
                     $ref: '#/components/schemas/TicketReply'
               example: {
-                  "ticket_comments": [
-                      {
-                          "_pk": 1,
-                          "ticket_id": 1,
-                          "content": "Ticket comment\n",
-                          "creator": "a475f61317b24c50b6fbf7c5f57860f8@auth.local",
-                          "created_time": "2025-12-08T22:09:16.304459-10:00",
-                          "modified_time": "2025-12-08T22:09:16.304459-10:00",
-                          "deleted": false
-                      }
-                  ]
+                  "ticket_comment": {
+                      "_pk": 1,
+                      "ticket_id": 1,
+                      "content": "Ticket comment\n",
+                      "creator": "a475f61317b24c50b6fbf7c5f57860f8@auth.local",
+                      "created_time": "2025-12-08T22:09:16.304459-10:00",
+                      "modified_time": "2025-12-08T22:09:16.304459-10:00",
+                      "deleted": false
+                  }
               }
         '400':
           description: Bad Request
@@ -1484,8 +1590,9 @@ paths:
           description: Too many requests - Cannot be updated again within 10 seconds
 
     delete:
+      operationId: deleteTicketComment
       tags:
-        - Ticket Replies
+        - Ticket comments
       summary: Delete a ticket reply
       description: Delete a ticket reply.
       security:
@@ -1493,7 +1600,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/project_uuid'
         - $ref: '#/components/parameters/ticket_id'
-        - $ref: '#/components/parameters/reply_id'
+        - $ref: '#/components/parameters/comment_id'
       responses:
         '200':
           description: OK
@@ -1509,8 +1616,9 @@ paths:
   # ==================== Ticket Tags ====================
   /api/v2.1/project/{project_uuid}/ticket/tags/:
     get:
+      operationId: listTicketTags
       tags:
-        - Ticket Tags
+        - Ticket tags
       summary: List ticket tags
       description: List all ticket tags information.
       security:
@@ -1547,8 +1655,9 @@ paths:
           description: Project not found
 
     post:
+      operationId: createTicketTag
       tags:
-        - Ticket Tags
+        - Ticket tags
       summary: Create a ticket tag
       description: Create a new ticket tag.
       security:
@@ -1608,7 +1717,7 @@ paths:
 
     delete:
       tags:
-        - Ticket Tags
+        - Ticket tags
       summary: Batch delete ticket tags
       description: Delete multiple ticket tags.
       security:
@@ -1646,7 +1755,7 @@ paths:
   /api/v2.1/project/{project_uuid}/ticket/tags/{tag_id}/:
     get:
       tags:
-        - Ticket Tags
+        - Ticket tags
       summary: Get tickets by tag
       description: Get all tickets with a specific tag.
       security:
@@ -1932,7 +2041,7 @@ paths:
 
     put:
       tags:
-        - Ticket Tags
+        - Ticket tags
       summary: Update a ticket tag
       description: Update an existing ticket tag.
       security:
@@ -1974,7 +2083,7 @@ paths:
 
     delete:
       tags:
-        - Ticket Tags
+        - Ticket tags
       summary: Delete a ticket tag
       description: Delete a specific ticket tag.
       security:
@@ -1998,7 +2107,7 @@ paths:
   /api/v2.1/project/{project_uuid}/ticket/types/:
     get:
       tags:
-        - Ticket Types
+        - Ticket types
       summary: List ticket types
       description: List all ticket types information.
       security:
@@ -2035,7 +2144,7 @@ paths:
 
     post:
       tags:
-        - Ticket Types
+        - Ticket types
       summary: Create a ticket type
       description: Create a new ticket type.
       security:
@@ -2089,7 +2198,7 @@ paths:
 
     delete:
       tags:
-        - Ticket Types
+        - Ticket types
       summary: Batch delete ticket types
       description: Delete multiple ticket types.
       security:
@@ -2127,7 +2236,7 @@ paths:
   /api/v2.1/project/{project_uuid}/ticket/types/{type_id}/:
     get:
       tags:
-        - Ticket Types
+        - Ticket types
       summary: Get tickets by type
       description: Get all tickets with a specific type.
       security:
@@ -2413,7 +2522,7 @@ paths:
 
     put:
       tags:
-        - Ticket Types
+        - Ticket types
       summary: Update a ticket type
       description: Update an existing ticket type.
       security:
@@ -2452,7 +2561,7 @@ paths:
 
     delete:
       tags:
-        - Ticket Types
+        - Ticket types
       summary: Delete a ticket type
       description: Delete a specific ticket type.
       security:
@@ -2476,7 +2585,7 @@ paths:
   /api/v2.1/project/{project_uuid}/ticket/substates/:
     get:
       tags:
-        - Ticket Substates
+        - Ticket substates
       summary: List ticket substates
       description: List all ticket substates info. Optionally filter by state_id.
       security:
@@ -2547,7 +2656,7 @@ paths:
 
     post:
       tags:
-        - Ticket Substates
+        - Ticket substates
       summary: Create a ticket substate
       description: Create a new ticket substate under a parent state.
       security:
@@ -2605,7 +2714,7 @@ paths:
 
     delete:
       tags:
-        - Ticket Substates
+        - Ticket substates
       summary: Batch delete ticket substates
       description: Delete multiple ticket substates.
       security:
@@ -2643,7 +2752,7 @@ paths:
   /api/v2.1/project/{project_uuid}/ticket/substates/{substate_id}/:
     get:
       tags:
-        - Ticket Substates
+        - Ticket substates
       summary: Get tickets by substate
       description: Get all tickets with a specific substate.
       security:
@@ -2675,7 +2784,7 @@ paths:
 
     put:
       tags:
-        - Ticket Substates
+        - Ticket substates
       summary: Update a ticket substate
       description: Update an existing ticket substate.
       security:
@@ -2720,7 +2829,7 @@ paths:
 
     delete:
       tags:
-        - Ticket Substates
+        - Ticket substates
       summary: Delete a ticket substate
       description: Delete a specific ticket substate.
       security:
@@ -2744,7 +2853,7 @@ paths:
   /api/v2.1/project/{project_uuid}/ticket-views/:
     get:
       tags:
-        - Ticket Views
+        - Ticket views
       summary: List ticket views
       description: List all ticket views and navigation structure.
       security:
@@ -2864,7 +2973,7 @@ paths:
 
     post:
       tags:
-        - Ticket Views
+        - Ticket views
       summary: Create a ticket view
       description: Create a new ticket view.
       security:
@@ -2891,8 +3000,8 @@ paths:
                   type: object
                   description: Additional view configuration
       responses:
-        '200':
-          description: OK
+        '201':
+          description: Created
           content:
             application/json:
               schema:
@@ -2947,7 +3056,7 @@ paths:
   /api/v2.1/project/{project_uuid}/ticket-views/{view_id}/:
     get:
       tags:
-        - Ticket Views
+        - Ticket views
       summary: Get a ticket view
       description: Get detailed information of a specific ticket view.
       security:
@@ -3084,7 +3193,7 @@ paths:
 
     put:
       tags:
-        - Ticket Views
+        - Ticket views
       summary: Update a ticket view
       description: Update an existing ticket view (rename, change filters, etc.).
       security:
@@ -3141,7 +3250,7 @@ paths:
 
     delete:
       tags:
-        - Ticket Views
+        - Ticket views
       summary: Delete a ticket view
       description: Delete a specific ticket view.
       security:
@@ -3167,7 +3276,7 @@ paths:
   /api/v2.1/project/{project_uuid}/ticket-move-views/:
     post:
       tags:
-        - Ticket Views
+        - Ticket views
       summary: Move ticket view
       description: Move a view to another position in the navigation.
       security:
@@ -3234,7 +3343,7 @@ paths:
   /api/v2.1/project/{project_uuid}/ticket-duplicate-view/:
     post:
       tags:
-        - Ticket Views
+        - Ticket views
       summary: Duplicate ticket view
       description: Create a copy of an existing ticket view.
       security:
