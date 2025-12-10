@@ -17,6 +17,15 @@ jobs:
       - name: Check out repo 📚
         uses: actions/checkout@v4
 
+      - name: 诊断文件与网络
+        run: |
+          echo "1. 检查reference目录结构："
+          ls -la ./reference/
+          echo "2. 检查具体Markdown文件内容（前10行）："
+          head -10 ./reference/errors.md ./reference/introduction.md
+          echo "3. 测试网络连通性（如ReadMe API）："
+          curl -I https://dash.readme.com
+          
       # Seaqa API (docs only)
       - name: Update Seaqa API 🚀
         uses: readmeio/rdme@v10
