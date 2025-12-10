@@ -32,6 +32,19 @@ jobs:
           else
             echo "README_API_KEY is set"
           fi
+          echo "=== 1. 检查文件是否存在 ==="
+          ls -la ./reference/errors.md ./reference/introduction.md
+
+          echo "=== 2. 检查文件内容（示例）==="
+          head -20 ./reference/errors.md
+          echo "---"
+          head -20 ./reference/introduction.md
+
+          echo "=== 3. 检查换行符（^M表示CRLF）==="
+          cat -A ./reference/errors.md | head -5
+
+          echo "=== 4. 检查文件编码（前3字节）==="
+          head -c3 ./reference/errors.md | od -An -tx1
           
       # Seaqa API (docs only)
       - name: Update Seaqa API 🚀
