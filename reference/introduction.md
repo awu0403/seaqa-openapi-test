@@ -1,5 +1,7 @@
 ---
 title: Introduction
+category:
+  uri: /branches/1.0/categories/reference/test
 slug: introduction
 content:
   excerpt: >-
