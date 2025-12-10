@@ -56,4 +56,4 @@ jobs:
       - name: Ticket operations 🚀
         uses: readmeio/rdme@v10
         with:
-          rdme: openapi upload ./api/ticket_operations.yaml --key=${{ secrets.README_API_KEY }} --slug=ticket_operations
+          rdme: openapi upload ./api/ticket_operations.yaml --key=${{ secrets.README_API_KEY }}
