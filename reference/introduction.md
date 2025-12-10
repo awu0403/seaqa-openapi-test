@@ -1,9 +1,12 @@
 ---
 title: Introduction
-excerpt: This is the reference for the SeaQA API. On this page you will find everything you need to use the SeaQA API.
-category: 658bc87fd352d6004fe43f8f
-isReference: true
+category:
+  uri: uri-that-does-not-map-to-658bc87fd352d6004fe43f8f
 slug: introduction
+content:
+  excerpt: >-
+    This is the reference for the SeaQA API. On this page you will find
+    everything you need to use the SeaQA API.
 ---
 
 The SeaQA API is organized around REST. Our API has predictable resource-oriented URLs, accepts form-encoded request bodies, returns JSON-encoded responses, and uses standard HTTP response codes, authentication, and verbs.

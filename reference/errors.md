@@ -1,9 +1,10 @@
 ---
 title: Status Codes
-excerpt: The HTTP response codes indicate success or error.
-category: 658bc87fd352d6004fe43f8f
-isReference: true
+category:
+  uri: uri-that-does-not-map-to-658bc87fd352d6004fe43f8f
 slug: errors
+content:
+  excerpt: The HTTP response codes indicate success or error.
 ---
 
 Seafile uses conventional HTTP response codes to indicate the success or failure of an API request. In general:
