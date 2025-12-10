@@ -1,7 +1,5 @@
 ---
 title: Status Codes
-category:
-  uri: /branches/1.0/categories/reference/test
 slug: errors
 content:
   excerpt: The HTTP response codes indicate success or error.
