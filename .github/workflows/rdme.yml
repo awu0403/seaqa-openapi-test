@@ -46,11 +46,11 @@ jobs:
           echo "=== 4. 检查文件编码（前3字节）==="
           head -c3 ./reference/errors.md | od -An -tx1
           
-      # Seaqa API (docs only)
-      # - name: Update Seaqa API 🚀
-      #   uses: readmeio/rdme@v10
-      #   with:
-      #     rdme: docs upload ./reference --key=${{ secrets.README_API_KEY }} --branch=1.0
+      # Seaqa API (docs only) # rdme v10 被移除，无法上传
+      - name: Update Seaqa API 🚀
+        uses: readmeio/rdme@v10
+        with:
+          rdme: openapi upload ./reference --key=${{ secrets.README_API_KEY }} --branch=1.0
 
       # ticket operations: user
       - name: Ticket operations 🚀
