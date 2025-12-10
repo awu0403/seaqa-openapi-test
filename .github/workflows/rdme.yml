@@ -25,6 +25,13 @@ jobs:
           head -10 ./reference/errors.md ./reference/introduction.md
           echo "3. 测试网络连通性（如ReadMe API）："
           curl -I https://dash.readme.com
+          echo "4. 检查API密钥是否设置："
+          if [ -z "${{ secrets.README_API_KEY }}" ]; then
+            echo "ERROR: README_API_KEY not set"
+            exit 1
+          else
+            echo "README_API_KEY is set"
+          fi
           
       # Seaqa API (docs only)
       - name: Update Seaqa API 🚀

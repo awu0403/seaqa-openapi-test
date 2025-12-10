@@ -1,7 +1,7 @@
 ---
 title: Status Codes
 category:
-  uri: uri-that-does-not-map-to-658bc87fd352d6004fe43f8f
+  uri: /branches/1.0/categories/reference/test
 slug: errors
 content:
   excerpt: The HTTP response codes indicate success or error.
