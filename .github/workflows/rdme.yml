@@ -50,7 +50,8 @@ jobs:
       - name: Update Seaqa API 🚀
         uses: readmeio/rdme@v10
         with:
-          rdme: openapi upload ./reference --key=${{ secrets.README_API_KEY }} --branch=1.0
+          rdme: openapi upload ./reference/errors.md --key=${{ secrets.README_API_KEY }} --branch=1.0
+          rdme: openapi upload ./reference/introduction.md --key=${{ secrets.README_API_KEY }} --branch=1.0
 
       # ticket operations: user
       - name: Ticket operations 🚀
