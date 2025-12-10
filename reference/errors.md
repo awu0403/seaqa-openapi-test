@@ -1,7 +1,8 @@
 ---
 title: Status Codes
 slug: errors
-excerpt: The HTTP response codes indicate success or error.
+content:
+  excerpt: The HTTP response codes indicate success or error.
 ---
 
 Seafile uses conventional HTTP response codes to indicate the success or failure of an API request. In general:
